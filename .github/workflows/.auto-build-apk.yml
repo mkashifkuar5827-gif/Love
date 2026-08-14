@@ -19,7 +19,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # 1. Automate fix for missing google-services.json
+    # 1. Auto-Fix Missing Google Services File
     - name: Auto-Fix Missing Google Services File
       run: |
         mkdir -p app
@@ -37,10 +37,15 @@ jobs:
           }' > app/google-services.json
         fi
 
-    # 2. Automate fix for KSP / Headless AWT Crash
-    - name: Setup Gradle Properties
+    # 2. Fix KSP Headless & Missing Gradle Wrapper Issues
+    - name: Setup Gradle Properties and Wrapper
       run: |
         echo "org.gradle.jvmargs=-Xmx2048m -Djava.awt.headless=true" >> gradle.properties
+        if [ ! -f "gradlew" ]; then
+          echo "Gradle wrapper missing, generating..."
+          gradle wrapper
+        fi
+        chmod +x gradlew
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
