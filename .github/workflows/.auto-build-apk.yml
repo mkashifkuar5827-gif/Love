@@ -19,7 +19,27 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # 1. Auto-Fix Missing Google Services File
+    # 1. Auto-Detect and Extract Zip or Subfolder Project
+    - name: Auto-Detect Project Files
+      run: |
+        # Zip file check
+        ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
+        if [ -n "$ZIP_FILE" ]; then
+          echo "Found zip file: $ZIP_FILE. Extracting..."
+          unzip -o "$ZIP_FILE"
+        fi
+
+        # Find project folder with build.gradle / settings.gradle
+        BUILD_FILE=$(find . -name "settings.gradle*" -o -name "build.gradle*" | head -n 1)
+        if [ -n "$BUILD_FILE" ]; then
+          PROJ_DIR=$(dirname "$BUILD_FILE")
+          if [ "$PROJ_DIR" != "." ]; then
+            echo "Found project in subfolder: $PROJ_DIR. Moving files to root..."
+            cp -rn "$PROJ_DIR"/* . || true
+          fi
+        fi
+
+    # 2. Auto-Fix Missing Google Services File
     - name: Auto-Fix Missing Google Services File
       run: |
         mkdir -p app
@@ -37,7 +57,7 @@ jobs:
           }' > app/google-services.json
         fi
 
-    # 2. Fix KSP Headless & Missing Gradle Wrapper Issues
+    # 3. Setup Gradle Properties & Wrapper
     - name: Setup Gradle Properties and Wrapper
       run: |
         echo "org.gradle.jvmargs=-Xmx2048m -Djava.awt.headless=true" >> gradle.properties
@@ -50,7 +70,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    # 3. Build the APK
+    # 4. Build Debug APK
     - name: Build Debug APK
       run: ./gradlew assembleDebug --no-daemon
 
