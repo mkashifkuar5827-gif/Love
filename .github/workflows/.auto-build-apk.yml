@@ -22,14 +22,12 @@ jobs:
     # 1. Auto-Detect and Extract Zip or Subfolder Project
     - name: Auto-Detect Project Files
       run: |
-        # Zip file check
         ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
         if [ -n "$ZIP_FILE" ]; then
           echo "Found zip file: $ZIP_FILE. Extracting..."
           unzip -o "$ZIP_FILE"
         fi
 
-        # Find project folder with build.gradle / settings.gradle
         BUILD_FILE=$(find . -name "settings.gradle*" -o -name "build.gradle*" | head -n 1)
         if [ -n "$BUILD_FILE" ]; then
           PROJ_DIR=$(dirname "$BUILD_FILE")
@@ -39,23 +37,21 @@ jobs:
           fi
         fi
 
-    # 2. Auto-Fix Missing Google Services File
+    # 2. Auto-Fix Google Services with Correct Package Name
     - name: Auto-Fix Missing Google Services File
       run: |
         mkdir -p app
-        if [ ! -f "app/google-services.json" ]; then
-          echo "Creating dummy google-services.json to fix build..."
-          echo '{
-            "project_info": { "project_number": "0", "project_id": "dummy", "storage_bucket": "dummy" },
-            "client": [{
-              "client_info": { "mobilesdk_app_id": "1:0:android:0", "android_client_info": { "package_name": "com.example.app" } },
-              "oauth_client": [],
-              "api_key": [{ "current_key": "dummy" }],
-              "services": { "analytics_service": { "status": 1 } }
-            }],
-            "configuration_version": "1"
-          }' > app/google-services.json
-        fi
+        echo "Creating dummy google-services.json with correct package name..."
+        echo '{
+          "project_info": { "project_number": "0", "project_id": "dummy", "storage_bucket": "dummy" },
+          "client": [{
+            "client_info": { "mobilesdk_app_id": "1:0:android:0", "android_client_info": { "package_name": "com.aistudio.kashifmobile.shop" } },
+            "oauth_client": [],
+            "api_key": [{ "current_key": "dummy" }],
+            "services": { "analytics_service": { "status": 1 } }
+          }],
+          "configuration_version": "1"
+        }' > app/google-services.json
 
     # 3. Setup Gradle Properties & Wrapper
     - name: Setup Gradle Properties and Wrapper
