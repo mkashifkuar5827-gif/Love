@@ -13,6 +13,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 1. Automatic Zip Extraction Step
+      - name: Extract Project Zip File
+        run: |
+          echo "Extracting project ZIP archive..."
+          unzip -o *.zip || echo "No zip file found or already extracted."
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -22,29 +28,31 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # Duplicate Icons ko Auto Remove karne ke liye
-      - name: Auto Fix Duplicate Icon Resources
+      # 2. Auto Fix Duplicate Resources (Icons & Drawables)
+      - name: Auto Clean Duplicate Resources
         run: |
+          echo "Cleaning duplicate icons..."
           find . -type f \( -path "*/res/*/ic_launcher*.webp" -o -path "*/res/*/ic_launcher*.png" \) -delete || true
 
-      # Gradlew ki location auto-find karke permission dega aur build karega
+      # 3. Smart Build Execution
       - name: Build Debug APK
         run: |
+          # Gradlew directory locate karke target folder mein enter hoga
           GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
           
-          if [ -z "$GRADLEW_PATH" ]; then
-            echo "Error: gradlew file repository mein nahi mili!"
-            exit 1
+          if [ -n "$GRADLEW_PATH" ]; then
+            PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+            cd "$PROJECT_DIR"
+            chmod +x ./gradlew
+            ./gradlew assembleDebug
+          else
+            echo "Gradlew not found, using system gradle..."
+            gradle assembleDebug
           fi
-          
-          PROJECT_DIR=$(dirname "$GRADLEW_PATH")
-          echo "Project folder found at: $PROJECT_DIR"
-          cd "$PROJECT_DIR"
-          chmod +x ./gradlew
-          ./gradlew assembleDebug
 
-      - name: Upload APK
+      # 4. Save Final APK Artifact
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
+          name: kashif-mobile-repair-app
           path: "**/build/outputs/apk/debug/*.apk"
