@@ -13,10 +13,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Agar aap zip file extract karte hain, to unzip step yahan rakhin
-      # - name: Unzip Project
-      #   run: unzip -q kashif-mobile-\&-repair.zip
-
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -26,18 +22,26 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # UPDATED STEP: Smart Search & Auto-Fix
+      # Duplicate Icons ko Auto Remove karne ke liye
       - name: Auto Fix Duplicate Icon Resources
         run: |
-          echo "Searching for res folder and cleaning duplicate launcher icons..."
-          
-          # Pooray repository mein jahan bhi ic_launcher ki webp/png files hain unhein delete kar dega
           find . -type f \( -path "*/res/*/ic_launcher*.webp" -o -path "*/res/*/ic_launcher*.png" \) -delete || true
-          
-          echo "Duplicate icons cleanup complete!"
 
+      # Gradlew ki location auto-find karke permission dega aur build karega
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: |
+          GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
+          
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "Error: gradlew file repository mein nahi mili!"
+            exit 1
+          fi
+          
+          PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+          echo "Project folder found at: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
