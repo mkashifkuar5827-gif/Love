@@ -1,0 +1,6 @@
+{
+  "name": "Kashif Mobile & Repair",
+  "description": "Professional offline mobile shop management application for Kashif Mobile and Repair.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
