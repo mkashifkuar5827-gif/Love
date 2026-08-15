@@ -13,8 +13,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Agar aap zip file extract karte hain, to unzip step yahan rakhin
+      # - name: Unzip Project
+      #   run: unzip -q kashif-mobile-\&-repair.zip
+
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -22,16 +26,15 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # NAYA STEP: Duplicate Launcher Icons ko Auto Delete Karne Ke Liye
+      # UPDATED STEP: Smart Search & Auto-Fix
       - name: Auto Fix Duplicate Icon Resources
         run: |
-          echo "Checking for duplicate launcher icons..."
+          echo "Searching for res folder and cleaning duplicate launcher icons..."
           
-          # Agar .xml files mojood hain to extra .webp ya .png delete ho jaye gi
-          find app/src/main/res/ -name "ic_launcher*.webp" -exec rm -f {} +
-          find app/src/main/res/ -name "ic_launcher*.png" -exec rm -f {} +
+          # Pooray repository mein jahan bhi ic_launcher ki webp/png files hain unhein delete kar dega
+          find . -type f \( -path "*/res/*/ic_launcher*.webp" -o -path "*/res/*/ic_launcher*.png" \) -delete || true
           
-          echo "Duplicate files removed successfully!"
+          echo "Duplicate icons cleanup complete!"
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug
@@ -40,4 +43,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: "**/build/outputs/apk/debug/*.apk"
